@@ -125,23 +125,26 @@ birthweight = birthweight |>
 
 ```{r}
 
-model <- lm(bwt ~ momage + smoken, data = birthweight)
+model <- lm(bwt ~ ppwt * mheight * ppbmi, data = birthweight)
 
 summary(model)
 
-birthweight = birthweight |>
-  mutate(predicted =  predict(model, type = "response")) |>
-  mutate(residuals = residuals(model))
-
-ggplot(birthweight, aes(x = predicted, y = residuals)) +
-  geom_point() +
-  geom_smooth() +
-  ggtitle("Residuals vs Fitted Values") +
-  xlab("Fitted Values") +
-  ylab("Residuals")
-
 
 ```
+```{r}
+birthweight = birthweight |>
+  add_predictions(model) |>
+  add_residuals(model)
+birthweight|>
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Residuals vs Fitted Values",
+       x = "Fitted Values",
+       y = "Residuals")
+
+```
+
 
 ```{r}
 model2 <- lm(bwt ~ blength + gaweeks, data = birthweight)
@@ -150,19 +153,32 @@ model3 <- lm(bwt ~ bhead * blength * babysex, data = birthweight)
 ```
 
 ```{r}
-
 cv_df = crossv_mc(birthweight, 100) 
 
-cv_df =
+cv_df = 
   cv_df |> 
   mutate(
-    train = map(train, as_tibble),
-    test = map(test, as_tibble))
+    model01  = map(train, \(df) lm(bwt ~ ppwt * mheight * ppbmi , data = birthweight)),
+    model02     = map(train, \(df) lm(bwt ~ blength + gaweeks, data = birthweight)),
+    model03  = map(train, \(df) lm(bwt ~ bhead * blength * babysex, data = birthweight))) |> 
+  mutate(
+    rmse_01 = map2_dbl(model01, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_02    = map2_dbl(model02, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_03 = map2_dbl(model03, test, \(mod, df) rmse(model = mod, data = df)))
 
 ```
 
 ```{r}
-
+cv_df |> 
+  select(starts_with("rmse")) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
+
 
 
