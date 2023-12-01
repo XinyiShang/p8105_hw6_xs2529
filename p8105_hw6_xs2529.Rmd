@@ -1,0 +1,168 @@
+---
+title: "p8105_hw6_xs2529"
+author: "Xinyi Shang"
+date: "2023-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(boot)
+library(broom)
+library(ggplot2)
+library(modelr)
+```
+
+### Problem 2
+
+```{r load data}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2022-01-01",
+    date_max = "2022-12-31") |>
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) |>
+  select(name, id, everything())
+```
+
+```{r}
+n_bootstrap = 100
+set.seed(1)
+
+boot_sample = function(df) {
+  sample_frac(df, replace = TRUE)
+}
+
+boot_straps = 
+  tibble(strap_number = 1:n_bootstrap) |> 
+  mutate(
+    strap_sample = map(strap_number, \(i) boot_sample(df = weather_df))
+  )
+
+bootstrap_results = 
+  boot_straps |> 
+  mutate(
+    models = map(strap_sample, \(weather_df) lm(tmax ~ tmin + prcp, data = weather_df) ),
+    results_beta = map(models, broom::tidy),
+    results_r_squared = map(models,broom::glance)
+    ) |>
+  select(-strap_sample, -models) 
+```
+
+```{r r squared}
+r_squared = bootstrap_results |>
+  unnest(results_r_squared) |>
+  janitor::clean_names() |>
+  select(r_squared)
+  
+r_squared_CI = r_squared |>
+  summarize(
+    ci_lower = quantile(r_squared, 0.025), 
+    ci_upper = quantile(r_squared, 0.975))
+
+r_squared_CI
+```
+
+```{r log(beta1*beta2)}
+beta = bootstrap_results |>
+  unnest(results_beta) |>
+  janitor::clean_names() |>
+  select (-results_r_squared) |>
+  select(strap_number, term,estimate)|>
+  pivot_wider(names_from = term, values_from = estimate) |>
+  mutate(log_beta = log(tmin*prcp))
+  
+log_beta_CI = beta |> 
+  drop_na() |>
+  summarize(
+    ci_lower = quantile(log_beta, 0.025), 
+    ci_upper = quantile(log_beta, 0.975))
+
+log_beta_CI
+```
+```{r}
+ggplot(beta, aes(x = log_beta)) +
+  geom_density() +
+  ggtitle("Density Plot of log(Beta1*Beta2)") +
+  xlab("log(Beta1*Beta2)") +
+  ylab("Density")
+```
+
+```{r}
+ggplot(r_squared, aes(x = r_squared)) +
+  geom_density() +
+  ggtitle("Density Plot of R Squared") +
+  xlab("R Squared") +
+  ylab("Density")
+```
+
+### Problem 3
+
+```{r data cleaning for birthweight}
+birthweight = read_csv("data/birthweight.csv")|>
+  janitor::clean_names()
+
+summary(birthweight)
+
+NA_birthweight = sum(is.na(birthweight))
+NA_birthweight
+
+birthweight = birthweight |>
+  mutate(babysex = as.factor(babysex)) |>
+  mutate(malform = as.factor(malform)) |>
+  mutate(frace = as.factor(frace)) |>
+  mutate(mrace = as.factor(mrace))
+
+```
+
+```{r}
+
+model <- lm(bwt ~ momage + smoken, data = birthweight)
+
+summary(model)
+
+birthweight = birthweight |>
+  mutate(predicted =  predict(model, type = "response")) |>
+  mutate(residuals = residuals(model))
+
+ggplot(birthweight, aes(x = predicted, y = residuals)) +
+  geom_point() +
+  geom_smooth() +
+  ggtitle("Residuals vs Fitted Values") +
+  xlab("Fitted Values") +
+  ylab("Residuals")
+
+
+```
+
+```{r}
+model2 <- lm(bwt ~ blength + gaweeks, data = birthweight)
+model3 <- lm(bwt ~ bhead * blength * babysex, data = birthweight)
+
+```
+
+```{r}
+
+cv_df = crossv_mc(birthweight, 100) 
+
+cv_df =
+  cv_df |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+
+```
+
+```{r}
+
+```
+
+
