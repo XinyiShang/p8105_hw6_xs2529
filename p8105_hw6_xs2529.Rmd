@@ -8,11 +8,9 @@ output: github_document
 ```{r setup, include=FALSE}
 
 library(tidyverse)
-library(boot)
-library(broom)
 library(ggplot2)
 library(modelr)
-library(viridis)
+
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -166,6 +164,8 @@ r_squared_CI = r_squared |>
 r_squared_CI
 ```
 
+The 95% confidence interval of the $\hat{r}^2$ is (`r r_squared_CI[1]`, `r r_squared_CI[2]`). The confidence interval of $\hat{r}^2$ is close to 1, which means the model (`tmax` ~ `tmin` + `prcp`) provides a good fit to the data and the predictions closely align with the actual values.
+
 Extracting $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$ values and compute the 95% confidence interval. 
 
 ```{r log(beta1*beta2)}
@@ -186,6 +186,10 @@ log_beta_CI = beta |>
 log_beta_CI
 ```
 
+The 95% confidence interval of the $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$  is (`r log_beta_CI[1]`, `r log_beta_CI[2]`).
+
+There are `NaN` values in the $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$, and they are excluded from computing the confidence interval and plotting. Only `r beta |> drop_na() |> nrow()` over `r beta |> nrow()` have valid $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$ values and are included in the calculation. 
+
 Making density plot for $\hat{r}^2$ and $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$.
 
 ```{r}
@@ -196,7 +200,7 @@ ggplot(r_squared, aes(x = r_squared)) +
   ylab("Density")
 ```
 
-The density plot of $\hat{r}^2$ shows a symmetrical, bell-shaped curve, with the majority of data clustered around the center. It follows the normal distribution. 
+The density plot of $\hat{r}^2$ shows a symmetrical, bell-shaped curve, with the majority of data clustered around the center.  
 
 ```{r}
 ggplot(beta, aes(x = log_beta)) +
