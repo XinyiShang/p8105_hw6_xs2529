@@ -196,7 +196,7 @@ ggplot(r_squared, aes(x = r_squared)) +
   ylab("Density")
 ```
 
-The density plot of $\hat{r}^2$ shows a symmetrical, bell-shaped curve, with the majority of data clustered around the mean. It follows the normal distribution. 
+The density plot of $\hat{r}^2$ shows a symmetrical, bell-shaped curve, with the majority of data clustered around the center. It follows the normal distribution. 
 
 ```{r}
 ggplot(beta, aes(x = log_beta)) +
@@ -225,7 +225,7 @@ birthweight = birthweight |>
   mutate(frace = as.factor(frace)) |>
   mutate(mrace = as.factor(mrace))
 ```
-In the process of data cleaning, I observed that there are no missing values (NA) in the `birthweight` dataset. The dataset comprises `nrow(birthweight)` observations and `ncol(birthweight)` variables, identified by the names `names(birthweight)`. As part of the cleaning process, I converted the variables `babysex`, `malform`, `frace`, and `mrace` into factors.
+In the process of data cleaning, I observed that there are no missing values (NA) in the `birthweight` dataset. The dataset comprises `r nrow(birthweight)` observations and `r ncol(birthweight)` variables, and the names  are: `r names(birthweight)`. As part of the cleaning process, I converted the variables `babysex`, `malform`, `frace`, and `mrace` into factors.
 
 ```{r}
 
@@ -234,7 +234,7 @@ model <- lm(bwt ~ mheight + ppwt + ppbmi + delwt + wtgain, data = birthweight)
 summary(model)
 
 ```
-I hypothesized that mother's size, including weight and height, are important in determining baby's weight. So, I considered mom's height `mheight`, mom's pre-pregnancy weight `ppwt`, mom's pre pregnancy bmi `ppbmi`, mother’s weight at delivery (pounds) `delwt`, and mother’s weight gain during pregnancy (pounds) `wtgain` into the model.
+I hypothesized that mother's size, including weight and height, are important in determining baby's weight. So, I included mom's height `mheight`, mom's pre-pregnancy weight `ppwt`, mom's pre pregnancy bmi `ppbmi`, mother’s weight at delivery (pounds) `delwt`, and mother’s weight gain during pregnancy (pounds) `wtgain` into the model.
 
 ```{r}
 birthweight = birthweight |>
@@ -249,7 +249,8 @@ birthweight|>
        y = "Residuals")
 
 ```
-In this residual vs. predicted values plot, the data points exhibit a circular pattern centered around (3000, 0), indicating potential heteroscedasticity. This suggests that the variability of the residuals is not consistent across various levels of predicted values. Moreover, the circular pattern may imply a lack of linearity in the relationship between the predictor and the response variable.
+
+In this residual vs. predicted values plot, the data points exhibit a circular pattern centered around (3000, 0), indicating potential heteroscedasticity. This suggests that the variability of the residuals is not consistent across various levels of predicted values. Moreover, the circular pattern may imply a lack of linearity in the relationship between the predictor and the data.
 
 ```{r}
 cv_df = crossv_mc(birthweight, 100) 
@@ -267,7 +268,7 @@ cv_df =
 
 ```
 
-Then, I conducted cross-validation comparing my proposed model to two alternative models:
+Then, I conducted cross-validation to compare my proposed model and two given models:
 
 Model_01: `mheight`, `ppwt`, `ppbmi`, `delwt`, `wtgain` (my proposal).
 
@@ -287,5 +288,5 @@ cv_df |>
   ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
 
-The Root Mean Square Error (RMSE) figure indicates that Model_03, which includes predictors `bhead`, `blength`, `babysex`, and all interactions, outperformed all other models by exhibiting the lowest RMSE values. However, the model I proposed, which includes predictors `mheight`, `ppwt`, `ppbmi`, `delwt`, and `wtgain`, displayed the poorest performance as shown by its higher RMSE.
+The Root Mean Square Error (RMSE) figure indicates that Model_03, which includes predictors `bhead`, `blength`, `babysex`, and all interactions, outperformed all other models by exhibiting the lowest RMSE values. However, the model I proposed (Model_01), which includes predictors `mheight`, `ppwt`, `ppbmi`, `delwt`, and `wtgain`, displayed the poorest performance as shown by its higher RMSE.
 
