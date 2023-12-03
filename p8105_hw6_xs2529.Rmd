@@ -2,7 +2,7 @@
 title: "p8105_hw6_xs2529"
 author: "Xinyi Shang"
 date: "2023-11-30"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -105,6 +105,7 @@ model_results |>
   geom_errorbar(aes(ymin = OR_CI_lower, ymax = OR_CI_upper)) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+
 Most cities show odds ratios below 1, indicating that crimes with male victims have lower resolution odds compared to female victims after adjusting for age and race. New York exhibits the strongest disparity. In roughly half of these cities, confidence intervals are narrow and do not contain 1, suggest a significant difference in resolution rates by sex after adjusting for age and race.
 
 ### Problem 2
@@ -123,7 +124,7 @@ weather_df =
   select(name, id, everything())
 ```
 
-Generating bootstrap samples, fitting linear regression models (tmax ~ tmin + prcp), and storing the beta coefficients and R-squared values from each model.
+Generating bootstrap samples, fitting linear regression models (tmax ~ tmin + prcp), and storing the beta coefficients and r-squared values from each model.
 
 ```{r}
 n_bootstrap = 5000
@@ -186,6 +187,7 @@ log_beta_CI
 ```
 
 Making density plot for $\hat{r}^2$ and $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$.
+
 ```{r}
 ggplot(r_squared, aes(x = r_squared)) +
   geom_density() +
@@ -193,6 +195,7 @@ ggplot(r_squared, aes(x = r_squared)) +
   xlab("R Squared") +
   ylab("Density")
 ```
+
 The density plot of $\hat{r}^2$ shows a symmetrical, bell-shaped curve, with the majority of data clustered around the mean. It follows the normal distribution. 
 
 ```{r}
@@ -202,6 +205,7 @@ ggplot(beta, aes(x = log_beta)) +
   xlab("log(Beta1*Beta2)") +
   ylab("Density")
 ```
+
 The density plot of $\log(\hat{\beta}_1 \cdot \hat{\beta}_2)$ is negatively skewed, suggests that the majority of values are concentrated on the higher end, with a peak on the left, and there are some lower values contributing to the longer left tail. 
 
 ### Problem 3
@@ -221,7 +225,7 @@ birthweight = birthweight |>
   mutate(frace = as.factor(frace)) |>
   mutate(mrace = as.factor(mrace))
 ```
-DIn the process of data cleaning, I observed that there are no missing values (NA) in the `birthweight` dataset. The dataset comprises `nrow(birthweight)` observations and `ncol(birthweight)` variables, identified by the names `names(birthweight)`. As part of the cleaning process, I converted the variables `babysex`, `malform`, `frace`, and `mrace` into factors.
+In the process of data cleaning, I observed that there are no missing values (NA) in the `birthweight` dataset. The dataset comprises `nrow(birthweight)` observations and `ncol(birthweight)` variables, identified by the names `names(birthweight)`. As part of the cleaning process, I converted the variables `babysex`, `malform`, `frace`, and `mrace` into factors.
 
 ```{r}
 
@@ -230,7 +234,8 @@ model <- lm(bwt ~ mheight + ppwt + ppbmi + delwt + wtgain, data = birthweight)
 summary(model)
 
 ```
-I hypothesized that mother's size, including weight and height, are important in determing baby's weight. So, I considered mom's height `mheight`, mom's pre-pregnancy weight `ppwt`, mom's pre pregnancy bmi `ppbmi`, mother’s weight at delivery (pounds) `delwt`, and mother’s weight gain during pregnancy (pounds) `wtgain` into the model.
+I hypothesized that mother's size, including weight and height, are important in determining baby's weight. So, I considered mom's height `mheight`, mom's pre-pregnancy weight `ppwt`, mom's pre pregnancy bmi `ppbmi`, mother’s weight at delivery (pounds) `delwt`, and mother’s weight gain during pregnancy (pounds) `wtgain` into the model.
+
 ```{r}
 birthweight = birthweight |>
   add_predictions(model) |>
@@ -269,6 +274,7 @@ Model_01: `mheight`, `ppwt`, `ppbmi`, `delwt`, `wtgain` (my proposal).
 Model_02: `blength`, `gaweeks`.
 
 Model_03: `bhead`, `blength`, `babysex`, and all interactions.
+
 ```{r}
 cv_df |> 
   select(starts_with("rmse")) |> 
